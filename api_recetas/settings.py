@@ -143,3 +143,5 @@ SIMPLE_JWT = {
 AUTH_USER_MODEL = "authentication.User"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+PHOTOS_FOLDER_ID = os.environ.get("PHOTOS_FOLDER_ID")

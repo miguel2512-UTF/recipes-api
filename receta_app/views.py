@@ -1,7 +1,11 @@
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+import requests
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+
+from api_recetas.drive_client import create_file, delete_file, get_media_file, update_file
+from api_recetas.settings import PHOTOS_FOLDER_ID
 from .models import Recipe
 from .serializer import RecipeSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -39,6 +43,9 @@ def RecipeCreate(req):
     difficulty = req.POST.get("difficulty", "")
     category = req.POST.get("category", "")
 
+    file = req.FILES["image"]
+    file_id = create_file(file, f"{req.user.email}", PHOTOS_FOLDER_ID)
+
     recipe = Recipe(
         name=name,
         description=description,
@@ -46,6 +53,7 @@ def RecipeCreate(req):
         time=time,
         difficulty=difficulty,
         category=category,
+        image = file_id,
         user=req.user
     )
 
@@ -67,6 +75,7 @@ def RecipeUpdate(req):
     time = req.POST.get("time", "")
     difficulty = req.POST.get("difficulty", "")
     category = req.POST.get("category", "")
+    image = req.FILES.get("image", "")
 
     try:
         recipe = Recipe.objects.get(id=id)
@@ -77,6 +86,9 @@ def RecipeUpdate(req):
         recipe.difficulty = difficulty
         recipe.category = category
 
+        if image:
+            update_file(recipe.image, image)
+        
         recipe.full_clean()
         recipe.save()
     except ValidationError as e:
@@ -92,9 +104,15 @@ def RecipeDelete(req):
     try:
         recipe = Recipe.objects.get(id=id)
         recipe.delete()
+
+        delete_file(recipe.image)
     except Recipe.DoesNotExist:
         return Response({"message": "Receta no encontrada"}, status=404)
     except ValidationError as e:
         return Response({"message": "Validation error", "errors": e.message_dict}, status=400)
 
     return Response({"message": "Receta eliminada exitosamente"})
+
+def get_photo(req, id):
+    photo = get_media_file(id)
+    return HttpResponse(photo, content_type="image/jpeg")

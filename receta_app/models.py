@@ -9,6 +9,7 @@ class Recipe(models.Model):
     time = models.CharField(max_length=30)
     difficulty = models.CharField(max_length=20, choices=[("easy", "Facil"), ("middle", "Medio"), ("hard", "dificil")])
     category = models.CharField(max_length=200, choices=[("breakfast","desayuno"), ("vegan", "vegano"), ("fast", "rapido"), ("desserts", "postres"), ("drinks", "bebidas")])
+    image = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     
 class Like(models.Model):
