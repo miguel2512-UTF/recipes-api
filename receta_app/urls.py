@@ -6,6 +6,7 @@ urlpatterns = [
     path("create/", views.RecipeCreate),
     path("edit/", views.RecipeUpdate),
     path("delete/", views.RecipeDelete),
+    path("like/<str:id>/", views.RecipeLike),
     path("photo/<str:id>/", views.get_photo),
 ]
     

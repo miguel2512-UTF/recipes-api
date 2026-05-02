@@ -6,7 +6,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from api_recetas.drive_client import create_file, delete_file, get_media_file, update_file
 from api_recetas.settings import PHOTOS_FOLDER_ID
-from .models import Recipe
+from .models import Like, Recipe
 from .serializer import RecipeSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -112,6 +112,27 @@ def RecipeDelete(req):
         return Response({"message": "Validation error", "errors": e.message_dict}, status=400)
 
     return Response({"message": "Receta eliminada exitosamente"})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def RecipeLike(req, id):
+    recipe: Recipe
+    try:
+        recipe = Recipe.objects.get(id=id)
+        like = Like.objects.get(recipe=recipe, user=req.user)
+        
+        like.delete()
+        return Response({"message": "Se ha removido Like a la receta correctamente"}, status=200)
+    except Like.DoesNotExist:
+        like = Like(
+            user = req.user,
+            recipe = recipe
+        )
+
+        like.save()
+        return Response({"message": "Se le ha dado Like a la receta correctamente"}, status=200)
+    except Recipe.DoesNotExist:
+        return Response({"message": "Receta no encontrada"}, status=404)
 
 def get_photo(req, id):
     photo = get_media_file(id)
